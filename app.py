@@ -3,7 +3,7 @@ import pandas as pd
 import plotly.express as px
 import os
 
-st.set_page_config(layout="wide")
+st.set_page_config(page_title="Dashboard Alunos - Passos Mágicos", layout="wide")
 
 ### RETORNA DATAFRAME
 @st.cache_data
