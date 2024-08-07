@@ -12,7 +12,9 @@ def fn_retorna_dados():
     """
     Ler base de dados
     """
-    return pd.read_csv(r".\base\df_vw_info_aluno.csv",sep=";")
+    #return pd.read_csv(r".\base\df_vw_info_aluno.csv",sep=";")
+    v_link = "https://raw.githubusercontent.com/ViniciusBrS/Datathon/main/base/df_vw_info_aluno.csv"
+    return pd.read_csv(v_link,sep=";")
 
 df = fn_retorna_dados()
 
