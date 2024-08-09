@@ -29,7 +29,7 @@ with st.sidebar:
     df_filtro_mat = df.query("nomecurso == 'ALFABETIZAÇÃO' or nomecurso.str.contains('FASE')")
     lst_fase = df_filtro_mat.nomecurso.unique()
     lst_fase.sort()
-    slct_fase = st.selectbox("Fase:", lst_fase)
+    slct_fase = st.selectbox("Fase:", lst_fase, index=6)
 
     lst_turma = df.query("nometurma.notna() and nomecurso == @slct_fase").nometurma.unique()
     lst_turma.sort()
@@ -49,12 +49,16 @@ col1, col2 = st.columns(2)
 with col1:
     with st.container(border=True):
         st.markdown(f" #### {df_info["nomealuno"][0]}")
-        df_ava = df_filtro_aluno[['siglaperiodo','avaliacao_desc']].query('avaliacao_desc.notna()')\
-                .groupby('siglaperiodo').avaliacao_desc.max().reset_index()
-        V_STR_AVA = ""
-        for i,r in df_ava.iterrows():
-            V_STR_AVA = V_STR_AVA +f"- *Avaliação {r['siglaperiodo']}*: {r['avaliacao_desc']} \n"
-        st.markdown(V_STR_AVA)
+        V_DT_NASC = datetime.strptime(df_info["datanascimento"][0],"%Y-%m-%d %H:%M:%S")
+        V_DT_NASC = V_DT_NASC.strftime("%d/%m/%Y")
+        st.markdown(f"""
+                    ######
+                    ##### Informações gerais
+                    ###### *ID*: {df_info["idaluno"][0]}
+                    ###### *Data de nascimento*: {V_DT_NASC}
+                    ###### *Sexo*: {dic_sexo.get(df_info["sexo"][0])}
+        """)
+
 
     with st.container(border=True):
         df_falta = df_filtro_aluno[['nomedisciplina','nomefase','faltas']]\
@@ -68,14 +72,14 @@ with col1:
 
 with col2:
     with st.container(border=True):
-        V_DT_NASC = datetime.strptime(df_info["datanascimento"][0],"%Y-%m-%d %H:%M:%S")
-        V_DT_NASC = V_DT_NASC.strftime("%d/%m/%Y")
-        st.markdown(f"""
-                    ##### Informações gerais
-                    ###### ID: {df_info["idaluno"][0]}
-                    ###### Data de nascimento: {V_DT_NASC}
-                    ###### Sexo: {dic_sexo.get(df_info["sexo"][0])}
-        """)
+        st.markdown("##### Avaliações:")
+        df_ava = df_filtro_aluno[['siglaperiodo','avaliacao_desc']].query('avaliacao_desc.notna()')\
+        .groupby('siglaperiodo').avaliacao_desc.max().reset_index()
+        V_STR_AVA = ""
+        for i,r in df_ava.iterrows():
+            V_STR_AVA = V_STR_AVA +f"- *Avaliação {r['siglaperiodo']}*: {r['avaliacao_desc']} \n"
+        st.markdown(V_STR_AVA)
+        
 
     with st.container(border=True):
         st.markdown(" **Desempenho do aluno** ")

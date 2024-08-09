@@ -1,7 +1,7 @@
+import os
 import streamlit as st
 import pandas as pd
 import plotly.express as px
-import os
 
 st.set_page_config(page_title="Dashboard Alunos - Passos Mágicos", layout="wide")
 
@@ -30,16 +30,25 @@ with st.sidebar:
 v_ano = sld_ano
 df_filtro = df[df.siglaperiodo == v_ano].query("nomecurso == 'ALFABETIZAÇÃO' or nomecurso.str.contains('FASE')")
 df_filtro['nomedisciplina'] = df_filtro['nomedisciplina'].str[:20]
-ls = pd.unique(df_filtro[['nome_prof_1', 'nome_prof_2','nome_prof_3','nome_prof_4']].values.ravel('K'))
+ls = pd.unique(df_filtro[['nome_prof_1', 'nome_prof_2',
+                          'nome_prof_3','nome_prof_4']].values.ravel('K'))
+
+lst_materias = df_filtro['nomedisciplina'].unique()
+lst_cores = ['#636EFA','#EF553B','#00CC96','#AB63FA','#FFA15A',
+             '#19D3F3','#FF6692','#B6E880','#FF97FF','#FECB52',
+             'red','blue','green']
+dic_cores_materia = dict(zip(lst_materias, lst_cores))
 
 v_check_ano = sld_ano > df.siglaperiodo.min()
 v_ano_ant = sld_ano-1 if v_check_ano else sld_ano
-df_filtro_ant = df[df.siglaperiodo == v_ano_ant].query("nomecurso == 'ALFABETIZAÇÃO' or nomecurso.str.contains('FASE')")
-ls_ant = pd.unique(df_filtro_ant[['nome_prof_1', 'nome_prof_2','nome_prof_3','nome_prof_4']].values.ravel('K'))
+df_filtro_ant = df[df.siglaperiodo == v_ano_ant].\
+                query("nomecurso == 'ALFABETIZAÇÃO' or nomecurso.str.contains('FASE')")
+ls_ant = pd.unique(df_filtro_ant[['nome_prof_1', 'nome_prof_2',
+                                  'nome_prof_3','nome_prof_4']].values.ravel('K'))
 
 v_aluno, v_aluno_ant = len(df_filtro['idaluno'].unique()), len(df_filtro_ant['idaluno'].unique())
 v_turma, v_turma_ant = len(df_filtro['idturma'].unique()), len(df_filtro_ant['idturma'].unique())
-v_prof, v_prof_ant = len([l for l in ls if l is not None]), len([l for l in ls_ant if l is not None])
+v_prof,v_prof_ant = len([l for l in ls if l is not None]),len([l for l in ls_ant if l is not None])
 v_dif_aluno = round((1-v_aluno_ant/v_aluno)*100,2)
 v_dif_turma = round((1-v_turma_ant/v_turma)*100,2)
 v_dif_prof = round((1-v_prof_ant/v_prof)*100,2)
@@ -47,9 +56,15 @@ v_dif_prof = round((1-v_prof_ant/v_prof)*100,2)
 cont_metricas = st.container(border=True)
 with cont_metricas:
     col_card1, col_card2, col_card3 = st.columns(3)
-    col_card1.metric(f"Alunos em {v_ano}", v_aluno, str(v_dif_aluno)+f"% vs {v_ano_ant}" if v_check_ano else None)
-    col_card2.metric(f"Turmas em {v_ano}", v_turma, str(v_dif_turma)+f"% vs {v_ano_ant}" if v_check_ano else None)
-    col_card3.metric(f"Professores em {v_ano}", v_prof, str(v_dif_prof)+f"% vs {v_ano_ant}" if v_check_ano else None)
+    col_card1.metric(f"Alunos em {v_ano}",
+                     v_aluno, 
+                     str(v_dif_aluno)+f"% vs {v_ano_ant}" if v_check_ano else None)
+    col_card2.metric(f"Turmas em {v_ano}",
+                     v_turma,
+                     str(v_dif_turma)+f"% vs {v_ano_ant}" if v_check_ano else None)
+    col_card3.metric(f"Professores em {v_ano}",
+                     v_prof,
+                     str(v_dif_prof)+f"% vs {v_ano_ant}" if v_check_ano else None)
 
 
 col1, col2 = st.columns(2)
@@ -57,6 +72,7 @@ col1, col2 = st.columns(2)
 with col1:
     df_1 = df_filtro[['idaluno','nomecurso']].groupby('nomecurso').idaluno.nunique().reset_index()
     fig_1 = px.bar(df_1, x='nomecurso',y='idaluno', labels={'idaluno':'Qtde.','nomecurso':'Fase'}, title="Quantidade de alunos por fase")
+    fig_1.update_traces(marker=dict(color='#004580'))
     st.plotly_chart(fig_1, theme="streamlit" ,use_container_width=True)
     st.divider()
     lst_rd_fase = df_filtro.nomecurso.unique()
@@ -65,14 +81,18 @@ with col1:
     v_filtro_fase = rd_fase
     df_3 = df_filtro[['idaluno','nomecurso','nomedisciplina','notafase']].query('notafase >= 0 and nomecurso == @v_filtro_fase') #.groupby(['idaluno','nomedisciplina']).idaluno.nunique().reset_index()
     df_3 = df_3.groupby(['idaluno','nomedisciplina']).notafase.mean().reset_index()
-    fig_3 = px.box(df_3, x="nomedisciplina", y="notafase", title=f"Variação das notas na {v_filtro_fase} - {v_ano}")
-    st.plotly_chart(fig_3, theme="streamlit" ,use_container_width=True)
+    fig_3 = px.box(df_3, x="nomedisciplina", y="notafase",
+                   color_discrete_map=dic_cores_materia,
+                   title=f"Variação das notas na {v_filtro_fase} - {v_ano}")
+    st.plotly_chart(fig_3, theme="streamlit",
+                    use_container_width=True)
 
 
 with col2:
     df_2 = df_filtro[['idaluno','nomecurso','idturma']].groupby(['nomecurso','idturma']).idaluno.nunique().reset_index()
     df_2 = df_2.groupby('nomecurso').idaluno.mean().round(1).reset_index()
     fig_2 = px.bar(df_2, x='nomecurso',y='idaluno', labels={'idaluno':'Média','nomecurso':'Fase'}, title="Média de alunos por turma")
+    fig_2.update_traces(marker=dict(color='#f58334'))
     st.plotly_chart(fig_2, theme="streamlit" ,use_container_width=True)
     st.divider()
     with st.container():
@@ -90,7 +110,8 @@ with col2:
     df_4 = df_4.groupby(['siglaperiodo','nomedisciplina']).notafase.mean().round(2).reset_index()
     fig_4 = px.line(df_4, x="siglaperiodo", y="notafase", color='nomedisciplina',
                     labels={'notafase':'Nota','siglaperiodo':'Ano','nomedisciplina':''},
-                    title=f"Média de nota por ano - {v_filtro_fase}")
+                    title=f"Média de nota por ano - {v_filtro_fase}",
+                    color_discrete_map=dic_cores_materia)
     fig_4.update_xaxes(type='category')
     fig_4.update_layout(yaxis_range = [0,10], legend=dict(
     orientation="h",yanchor="bottom",    y=-1,    xanchor="left",    x=0.01
