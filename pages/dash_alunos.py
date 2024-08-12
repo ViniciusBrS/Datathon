@@ -61,12 +61,22 @@ with col1:
 
 
     with st.container(border=True):
-        df_falta = df_filtro_aluno[['nomedisciplina','nomefase','faltas']]\
-                    .query('nomefase.str.contains("SEMESTRE") and faltas.notna()')
-        df_falta = df_falta.groupby(['nomedisciplina','nomefase']).faltas.sum().reset_index()
-        fig_2 = px.bar(df_falta, x="nomedisciplina", y="faltas", color="nomefase",
-                       labels={'nomedisciplina':'Matéria','faltas':'Faltas', 'nomefase':'Período'},
-                       title="Faltas por matéria")
+        st.markdown(" **Faltas por matéria** ")
+        df_f_falta_ano_slider = df_filtro_aluno[['nomedisciplina','siglaperiodo',
+                                                 'numerofase','nomefase','notafase','faltas']]\
+                                .query('nomefase.str.contains("SEMESTRE") and faltas.notna()')
+
+        if df_f_falta_ano_slider.siglaperiodo.min() != df_f_falta_ano_slider.siglaperiodo.max():
+            v_ano = st.slider("Ano", min_value=df_f_falta_ano_slider.siglaperiodo.min(),
+                              max_value=df_f_falta_ano_slider.siglaperiodo.max())
+        else:
+            v_ano = df_f_falta_ano_slider.siglaperiodo.min()
+        df_falta = df_filtro_aluno[['nomedisciplina','nomefase','faltas','siglaperiodo']]\
+        .query('nomefase.str.contains("SEMESTRE") and faltas.notna() and siglaperiodo == @v_ano')
+        df_falta_grp = df_falta.groupby(['nomedisciplina','nomefase']).faltas.sum().reset_index()
+
+        fig_2 = px.bar(df_falta_grp, x="nomedisciplina", y="faltas", color="nomefase",
+                       labels={'nomedisciplina':'Matéria','faltas':'Faltas', 'nomefase':'Período'})
         fig_2.update_layout(legend=dict(orientation="h"))
         st.plotly_chart(fig_2, theme="streamlit" ,use_container_width=True)
 
@@ -79,7 +89,7 @@ with col2:
         for i,r in df_ava.iterrows():
             V_STR_AVA = V_STR_AVA +f"- *Avaliação {r['siglaperiodo']}*: {r['avaliacao_desc']} \n"
         st.markdown(V_STR_AVA)
-        
+
 
     with st.container(border=True):
         st.markdown(" **Desempenho do aluno** ")
