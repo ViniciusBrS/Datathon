@@ -48,7 +48,7 @@ col1, col2 = st.columns(2)
 
 with col1:
     with st.container(border=True):
-        st.markdown(f" #### {df_info["nomealuno"][0]}")
+        st.markdown(f" #### {df_info['nomealuno'][0]}")
         V_DT_NASC = datetime.strptime(df_info["datanascimento"][0],"%Y-%m-%d %H:%M:%S")
         V_DT_NASC = V_DT_NASC.strftime("%d/%m/%Y")
         st.markdown(f"""
@@ -105,7 +105,7 @@ with col2:
 
         df_f_aluno_ano = df_filtro_aluno[['nomedisciplina','siglaperiodo',
                                           'numerofase','nomefase','notafase']]\
-                                        .query("siglaperiodo == @v_ano and notafase.notna()")
+                                        .query("siglaperiodo == @v_ano and notafase.notna() and ~nomefase.str.contains('MÉDIA')")
         df_f_aluno_ano_grp = df_f_aluno_ano.groupby(['nomedisciplina','numerofase','nomefase'])\
                             .notafase.mean().reset_index()
         df_f_aluno_ano_grp.sort_values(by=['nomedisciplina','numerofase'],
