@@ -11,6 +11,8 @@ import streamlit as st
 def carregar_modelo_e_scaler():
     model_path = r'C:\Users\Vinícius\Documents\PosTech\Datathon\Passos_Magicos_Final12A\modelo_2022.h5'
     scaler_path = r'C:\Users\Vinícius\Documents\PosTech\Datathon\Passos_Magicos_Final12A\scaler_2022.pkl'
+    #model_path = r'https://github.com/ViniciusBrS/Datathon/blob/main/modelo/modelo_2022.h5'
+    #scaler_path = r'https://github.com/ViniciusBrS/Datathon/blob/main/modelo/scaler_2022.pkl'
 
     # Carregar o modelo
     try:
